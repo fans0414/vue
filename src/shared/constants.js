@@ -1,5 +1,5 @@
 export const SSR_ATTR = 'data-server-rendered'
-
+// C02.1
 export const ASSET_TYPES = [
   'component',
   'directive',

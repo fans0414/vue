@@ -8,6 +8,8 @@ export * from './element'
 
 /**
  * Query an element selector if it's not an element already.
+ * B01.1  如果el是字符串则把el当做选择器并创建DOM元素
+ * 如果el不是字符串，则说明是DOM元素，直接返回
  */
 export function query (el: string | Element): Element {
   if (typeof el === 'string') {

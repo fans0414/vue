@@ -8,7 +8,7 @@ const flow = require('rollup-plugin-flow-no-whitespace')
 const version = process.env.VERSION || require('../package.json').version
 const weexVersion = process.env.WEEX_VERSION || require('../packages/weex-vue-framework/package.json').version
 const featureFlags = require('./feature-flags')
-
+// A05. 生成文件的文件头 自动生成
 const banner =
   '/*!\n' +
   ` * Vue.js v${version}\n` +
@@ -26,6 +26,7 @@ const weexFactoryPlugin = {
 }
 
 const aliases = require('./alias')
+// A06. 将参数路径转换为绝对路径
 const resolve = p => {
   const base = p.split('/')[0]
   if (aliases[base]) {
@@ -34,7 +35,7 @@ const resolve = p => {
     return path.resolve(__dirname, '../', p)
   }
 }
-
+// A03. 配置对象
 const builds = {
   // Runtime only (CommonJS). Used by bundlers e.g. Webpack & Browserify
   'web-runtime-cjs-dev': {
@@ -129,10 +130,11 @@ const builds = {
     banner
   },
   // Runtime+compiler production build  (Browser)
+  // A04. npm run dev 时 环境变量中设置的值
   'web-full-prod': {
-    entry: resolve('web/entry-runtime-with-compiler.js'),
-    dest: resolve('dist/vue.min.js'),
-    format: 'umd',
+    entry: resolve('web/entry-runtime-with-compiler.js'), //指定打包入口文件
+    dest: resolve('dist/vue.min.js'), // 打包输出文件
+    format: 'umd', // 模块化方式
     env: 'production',
     alias: { he: './entity-decoder' },
     banner
@@ -212,7 +214,7 @@ const builds = {
     external: Object.keys(require('../packages/weex-template-compiler/package.json').dependencies)
   }
 }
-
+// A02 获取配置
 function genConfig (name) {
   const opts = builds[name]
   const config = {
@@ -259,10 +261,12 @@ function genConfig (name) {
     enumerable: false,
     value: name
   })
-
+  // A08. 生成配置对象并返回
   return config
 }
 
+// A01. 判断环境变量是否有 TARGET
+// 如果有的话使用getConfig()生成rollup配置文件
 if (process.env.TARGET) {
   module.exports = genConfig(process.env.TARGET)
 } else {

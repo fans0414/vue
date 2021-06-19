@@ -1,5 +1,5 @@
 /* @flow */
-
+// A07. rollup打包入口文件
 import config from 'core/config'
 import { warn, cached } from 'core/util/index'
 import { mark, measure } from 'core/util/perf'
@@ -19,8 +19,9 @@ Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
+  // B01. 获取并处理el对象
   el = el && query(el)
-
+  // B02. 不能把vue挂载到body或html标签上
   /* istanbul ignore if */
   if (el === document.body || el === document.documentElement) {
     process.env.NODE_ENV !== 'production' && warn(
@@ -31,6 +32,7 @@ Vue.prototype.$mount = function (
 
   const options = this.$options
   // resolve template/el and convert to render function
+  // B03. 没有传入render函数时，将template转换为render函数
   if (!options.render) {
     let template = options.template
     if (template) {
@@ -79,6 +81,7 @@ Vue.prototype.$mount = function (
       }
     }
   }
+  // B04. 调用mount方法，挂载DOM
   return mount.call(this, el, hydrating)
 }
 
