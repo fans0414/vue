@@ -9,6 +9,9 @@
   - updateComponent() 中调用 vm._update(vm._render(), hydrating)
 - mountComponent还创建watcher实例
   - new Watcher()传入updateComponent()
+- new Watcher 创建时会立即调用一次get()
+- get()会调用updateComponent函数
+- 依次调用vm._render(),vm._update()完成首次渲染
 
 ### 状态更新后流程
 - 触发watcher的回调函数，即updateComponent()
@@ -46,7 +49,7 @@
   - 情况五 新旧vnode都有text属性且不相同
     - 使用新vnode的text填充旧vnode对应DOM元素文本内容
 - 核心updateChildren() (Diff算法)
- - 两种校验
- - 四大比较
- - 额外比较
- - 收尾工作
+  - 两种校验
+  - 四大比较
+  - 额外比较
+  - 收尾工作
