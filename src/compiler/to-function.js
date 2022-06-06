@@ -11,6 +11,7 @@ type CompiledFunctionResult = {
 
 function createFunction (code, errors) {
   try {
+    // 将字符串形式的js代码转换成一个函数
     return new Function(code)
   } catch (err) {
     errors.push({ err, code })
@@ -49,6 +50,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // check cache
+    // 如果有缓存则直接返回
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
@@ -57,6 +59,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // compile
+    // 将模板转换成render函数（js字符串形式的代码）
     const compiled = compile(template, options)
 
     // check compilation errors/tips
@@ -90,6 +93,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     // turn code into functions
     const res = {}
     const fnGenErrors = []
+    // 将字符串形式的js代码转换成js方法
     res.render = createFunction(compiled.render, fnGenErrors)
     res.staticRenderFns = compiled.staticRenderFns.map(code => {
       return createFunction(code, fnGenErrors)
@@ -108,7 +112,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
         )
       }
     }
-
+    // 缓存并返回 { render,staticRenderFns }
     return (cache[key] = res)
   }
 }

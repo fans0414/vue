@@ -2,6 +2,7 @@
 
 import Dep from './dep'
 import VNode from '../vdom/vnode'
+// 'push','pop','shift','unshift','splice','sort','reverse'
 import { arrayMethods } from './array'
 import {
   def,
@@ -35,23 +36,33 @@ export function toggleObserving (value: boolean) {
  * collect dependencies and dispatch updates.
  */
 export class Observer {
+  // 观测对象
   value: any;
+  // 依赖对象
   dep: Dep;
+  // 实例计数器
   vmCount: number; // number of vms that have this object as root $data
 
   constructor (value: any) {
     this.value = value
     this.dep = new Dep()
+    // 初始化实例的vmCount = 0;
     this.vmCount = 0
+    // 将实例挂载到观察对象的__ob__属性上
     def(value, '__ob__', this)
+    // 数组的响应式处理
     if (Array.isArray(value)) {
+      // 判断当前对象中是否有__proto__,进一步可判断当前浏览器是否支持原型对象
       if (hasProto) {
         protoAugment(value, arrayMethods)
       } else {
+        //不支持原型对象
         copyAugment(value, arrayMethods, arrayKeys)
       }
+      // 为数组中的每一个对象创建一个observer实例
       this.observeArray(value)
     } else {
+      // 遍历对象中的每一个属性，转换成getter/setter
       this.walk(value)
     }
   }
@@ -94,7 +105,10 @@ function protoAugment (target, src: Object) {
  * Augment a target Object or Array by defining
  * hidden properties.
  */
-/* istanbul ignore next */
+/** 
+ istanbul ignore next 
+   keys：'push','pop','shift','unshift','splice','sort','reverse'
+*/
 function copyAugment (target: Object, src: Object, keys: Array<string>) {
   for (let i = 0, l = keys.length; i < l; i++) {
     const key = keys[i]
@@ -107,11 +121,13 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  */
+// 响应式入口函数
 export function observe (value: any, asRootData: ?boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
     return
   }
   let ob: Observer | void
+  // __ob__保存了observer对象，有这个属性说明value已经是响应式对象了，无需再处理
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__
   } else if (
@@ -121,7 +137,8 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     Object.isExtensible(value) &&
     !value._isVue
   ) {
-    ob = new Observer(value)
+    // 创建响应式对象
+    ob = new Observer(value) 
   }
   if (asRootData && ob) {
     ob.vmCount++
@@ -132,6 +149,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 /**
  * Define a reactive property on an Object.
  */
+// 把对象中的属性转换成getter/setter
 export function defineReactive (
   obj: Object,
   key: string,
@@ -154,7 +172,7 @@ export function defineReactive (
   }
 
   let childOb = !shallow && observe(val)
-  Object.defineProperty(obj, key, {
+  Object.defineProperty(obj, key, { 
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {

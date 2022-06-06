@@ -56,6 +56,7 @@ Vue.prototype.$mount = function (
         return this
       }
     } else if (el) {
+      // 没有传入render，也没有传入template，只传入了el属性
       template = getOuterHTML(el)
     }
     if (template) {
@@ -90,8 +91,9 @@ Vue.prototype.$mount = function (
  * of SVG elements in IE as well.
  */
 function getOuterHTML (el: Element): string {
+  // 将el元素的父元素作为容器进行渲染
   if (el.outerHTML) {
-    return el.outerHTML
+    return el.outerHTML 
   } else {
     const container = document.createElement('div')
     container.appendChild(el.cloneNode(true))

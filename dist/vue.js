@@ -354,7 +354,7 @@
   }
 
   var SSR_ATTR = 'data-server-rendered';
-
+  // C02.1
   var ASSET_TYPES = [
     'component',
     'directive',
@@ -497,7 +497,7 @@
   function def (obj, key, val, enumerable) {
     Object.defineProperty(obj, key, {
       value: val,
-      enumerable: !!enumerable,
+      enumerable: !!enumerable,//不可枚举
       writable: true,
       configurable: true
     });
@@ -858,7 +858,7 @@
    */
 
   var arrayProto = Array.prototype;
-  var arrayMethods = Object.create(arrayProto);
+  var  arrayMethods = Object.create(arrayProto);
 
   var methodsToPatch = [
     'push',
@@ -922,16 +922,21 @@
   var Observer = function Observer (value) {
     this.value = value;
     this.dep = new Dep();
+    // 初始化实例的vmCount = 0;
     this.vmCount = 0;
+    // 将实例挂载到观察对象的__ob__属性上
     def(value, '__ob__', this);
+    // 数组的响应式处理
     if (Array.isArray(value)) {
       if (hasProto) {
         protoAugment(value, arrayMethods);
       } else {
         copyAugment(value, arrayMethods, arrayKeys);
       }
+      // 为数组中的每一个对象创建一个observer实例
       this.observeArray(value);
     } else {
+      // 遍历对象中的每一个属性，转换成getter/setter
       this.walk(value);
     }
   };
@@ -986,11 +991,13 @@
    * returns the new observer if successfully observed,
    * or the existing observer if the value already has one.
    */
+  // 响应式入口函数
   function observe (value, asRootData) {
     if (!isObject(value) || value instanceof VNode) {
       return
     }
     var ob;
+    // __ob__保存了observer对象，有这个属性说明value已经是响应式对象了，无需再处理
     if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
       ob = value.__ob__;
     } else if (
@@ -1000,7 +1007,8 @@
       Object.isExtensible(value) &&
       !value._isVue
     ) {
-      ob = new Observer(value);
+      // 创建响应式对象
+      ob = new Observer(value); 
     }
     if (asRootData && ob) {
       ob.vmCount++;
@@ -1011,6 +1019,7 @@
   /**
    * Define a reactive property on an Object.
    */
+  // 把对象中的属性转换成getter/setter
   function defineReactive (
     obj,
     key,
@@ -1033,7 +1042,7 @@
     }
 
     var childOb = !shallow && observe(val);
-    Object.defineProperty(obj, key, {
+    Object.defineProperty(obj, key, { 
       enumerable: true,
       configurable: true,
       get: function reactiveGetter () {
@@ -3773,6 +3782,7 @@
     vm._events = Object.create(null);
     vm._hasHookEvent = false;
     // init parent attached events
+    // 获取父组件上的事件 注册到当前组件上来
     var listeners = vm.$options._parentListeners;
     if (listeners) {
       updateComponentListeners(vm, listeners);
@@ -3942,6 +3952,7 @@
   }
 
   function lifecycleMixin (Vue) {
+    // _update方法会把VNode渲染成真实DOM
     Vue.prototype._update = function (vnode, hydrating) {
       var vm = this;
       var prevEl = vm.$el;
@@ -4743,7 +4754,8 @@
       }
     }
     // observe data
-    observe(data, true /* asRootData */);
+    // 响应式的入口
+    observe(data, true /* asRootData */); 
   }
 
   function getData (data, vm) {
@@ -5002,13 +5014,23 @@
       }
       // expose real self
       vm._self = vm;
+      // vm的生命周期相关变量初始化
+      // $children/$parent/$root/$refs
       initLifecycle(vm);
+      // vm的事件监听初始化，父组件绑定在当前组件上的事件
       initEvents(vm);
+      // vm的编译render初始化 初始化render函数中使用到的h函数 和 其他属性
+      // $slot/$scopedSlots/_c/$createElement/$attrs/$listeners
       initRender(vm);
+      // beforeCreate 生命周期钩子函数的回调
       callHook(vm, 'beforeCreate');
+      // 把inject的成员注入到vm上
       initInjections(vm); // resolve injections before data/props
+      // 初始化vm的_props/methods/_data/computed/watch
       initState(vm);
+      // 初始化provide
       initProvide(vm); // resolve provide after data/props
+      // 触发created 生命周期钩子的回调
       callHook(vm, 'created');
 
       /* istanbul ignore if */
@@ -5080,19 +5102,28 @@
     return modified
   }
 
+  // 定义Vue构造函数的地方
   function Vue (options) {
     if (
       !(this instanceof Vue)
     ) {
       warn('Vue is a constructor and should be called with the `new` keyword');
     }
+    // 调用_init()方法
     this._init(options);
   }
-
+  // 注册vm的_init方法，初始化vm
   initMixin(Vue);
+  // 注册vm的$data/$props/$set/$delete/$watch
   stateMixin(Vue);
+  // 初始化事件相关方法
+  // $on/$once/$off/$emit
   eventsMixin(Vue);
+  // 初始化生命周期相关的混入方法
+  // _update/$forceUpdate/$destory
   lifecycleMixin(Vue);
+  // 混入render
+  // $nextTick/_render
   renderMixin(Vue);
 
   /*  */
@@ -5415,7 +5446,7 @@
   };
 
   /*  */
-
+  // 初始化Vue静态方法
   function initGlobalAPI (Vue) {
     // config
     var configDef = {};
@@ -5427,6 +5458,7 @@
         );
       };
     }
+    // C01. 初始化Vue.config对象
     Object.defineProperty(Vue, 'config', configDef);
 
     // exposed util methods.
@@ -5442,13 +5474,14 @@
     Vue.set = set;
     Vue.delete = del;
     Vue.nextTick = nextTick;
-
+    // 将数据转换为响应式
     // 2.6 explicit observable API
     Vue.observable = function (obj) {
       observe(obj);
       return obj
     };
-
+    // C02. 初始化Vue.options对象，并给其扩展
+    // component directive filter
     Vue.options = Object.create(null);
     ASSET_TYPES.forEach(function (type) {
       Vue.options[type + 's'] = Object.create(null);
@@ -5457,15 +5490,19 @@
     // this is used to identify the "base" constructor to extend all plain-object
     // components with in Weex's multi-instance scenarios.
     Vue.options._base = Vue;
-
+    // 设置 keep-alive组件
     extend(Vue.options.components, builtInComponents);
-
+    // 注册 Vue.use() 用来注册插件
     initUse(Vue);
+    // 注册 Vue.mixin 实现混入
     initMixin$1(Vue);
+    // 注册Vue.extend() 基于传入的options返回一个组件的构造函数
     initExtend(Vue);
+    // 注册 Vue.directive() Vue.component() Vue.filter()
     initAssetRegisters(Vue);
   }
 
+  // 初始化Vue静态方法
   initGlobalAPI(Vue);
 
   Object.defineProperty(Vue.prototype, '$isServer', {
@@ -5699,6 +5736,8 @@
 
   /**
    * Query an element selector if it's not an element already.
+   * B01.1  如果el是字符串则把el当做选择器并创建DOM元素
+   * 如果el不是字符串，则说明是DOM元素，直接返回
    */
   function query (el) {
     if (typeof el === 'string') {
@@ -5883,7 +5922,11 @@
     }
     return map
   }
-
+  /**
+   *  创建并返回patch函数
+   *  patch函数定义的地方 
+   * 
+  */ 
   function createPatchFunction (backend) {
     var i, j;
     var cbs = {};
@@ -5939,7 +5982,7 @@
     }
 
     var creatingElmInVPre = 0;
-
+    // 创建vnode对应的元素 并挂载
     function createElm (
       vnode,
       insertedVnodeQueue,
@@ -5949,6 +5992,8 @@
       ownerArray,
       index
     ) {
+      // 有elm说明vnode曾经渲染过
+      // ownerArray说明vnode中有子节点
       if (isDef(vnode.elm) && isDef(ownerArray)) {
         // This vnode was used in a previous render!
         // now it's used as a new node, overwriting its elm would cause
@@ -5959,6 +6004,7 @@
       }
 
       vnode.isRootInsert = !nested; // for transition enter check
+      // vnode是组件的情况
       if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) {
         return
       }
@@ -5966,7 +6012,7 @@
       var data = vnode.data;
       var children = vnode.children;
       var tag = vnode.tag;
-      if (isDef(tag)) {
+      if (isDef(tag)) { //vnode是标签的情况
         {
           if (data && data.pre) {
             creatingElmInVPre++;
@@ -5980,28 +6026,32 @@
             );
           }
         }
-
+        // 创建vnode对应的DOM元素并保存至vnode.elm属性上
         vnode.elm = vnode.ns
           ? nodeOps.createElementNS(vnode.ns, tag)
           : nodeOps.createElement(tag, vnode);
+        // 设置样式作用域
         setScope(vnode);
 
         /* istanbul ignore if */
         {
+          // 创建vnode的所有子元素对应的DOM元素
           createChildren(vnode, children, insertedVnodeQueue);
           if (isDef(data)) {
+            // 触发create钩子函数
             invokeCreateHooks(vnode, insertedVnodeQueue);
           }
-          insert(parentElm, vnode.elm, refElm);
         }
+        // 将真实DOM元素挂载到DOM树上
+        insert(parentElm, vnode.elm, refElm);
 
         if ( data && data.pre) {
           creatingElmInVPre--;
         }
-      } else if (isTrue(vnode.isComment)) {
-        vnode.elm = nodeOps.createComment(vnode.text);
-        insert(parentElm, vnode.elm, refElm);
-      } else {
+      } else if (isTrue(vnode.isComment)) { //vnode是一个注释节点
+        vnode.elm = nodeOps.createComment(vnode.text); //创建注释节点的DOM元素
+        insert(parentElm, vnode.elm, refElm); //插入DOM树
+      } else { //vnode是文本节点
         vnode.elm = nodeOps.createTextNode(vnode.text);
         insert(parentElm, vnode.elm, refElm);
       }
@@ -6087,6 +6137,7 @@
           checkDuplicateKeys(children);
         }
         for (var i = 0; i < children.length; ++i) {
+          // 创建子元素vnode对应的DOM元素并挂载
           createElm(children[i], insertedVnodeQueue, vnode.elm, null, true, children, i);
         }
       } else if (isPrimitive(vnode.text)) {
@@ -6272,7 +6323,7 @@
         removeVnodes(oldCh, oldStartIdx, oldEndIdx);
       }
     }
-
+    // 验证所有子元素的key是否重复
     function checkDuplicateKeys (children) {
       var seenKeys = {};
       for (var i = 0; i < children.length; i++) {
@@ -6344,15 +6395,20 @@
       if (isDef(data) && isDef(i = data.hook) && isDef(i = i.prepatch)) {
         i(oldVnode, vnode);
       }
-
+      // 获取新旧vnode的子节点
       var oldCh = oldVnode.children;
       var ch = vnode.children;
+      // 触发 update钩子函数
       if (isDef(data) && isPatchable(vnode)) {
         for (i = 0; i < cbs.update.length; ++i) { cbs.update[i](oldVnode, vnode); }
         if (isDef(i = data.hook) && isDef(i = i.update)) { i(oldVnode, vnode); }
       }
+      // patchVnode核心功能 对比两个新旧vnode
+      // 1. 新vnode没有text属性
       if (isUndef(vnode.text)) {
+        // 1.1 新旧vnode是否都有子节点
         if (isDef(oldCh) && isDef(ch)) {
+          // 如果新旧vnode都有子节点且不相等时调用updateChildren函数进行子节点的对比
           if (oldCh !== ch) { updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly); }
         } else if (isDef(ch)) {
           {
@@ -6366,8 +6422,10 @@
           nodeOps.setTextContent(elm, '');
         }
       } else if (oldVnode.text !== vnode.text) {
+        // 2. 新旧vnode都有text 且不相同
         nodeOps.setTextContent(elm, vnode.text);
       }
+      // 触发postpatch钩子函数
       if (isDef(data)) {
         if (isDef(i = data.hook) && isDef(i = i.postpatch)) { i(oldVnode, vnode); }
       }
@@ -6500,22 +6558,33 @@
     }
 
     return function patch (oldVnode, vnode, hydrating, removeOnly) {
+      // 新vnode不存在的情况，以下这种情况比较少见
       if (isUndef(vnode)) {
+        // 旧vnode存在 
+        // 说明要删除旧vnode,并触发旧vnode上的destory钩子函数
         if (isDef(oldVnode)) { invokeDestroyHook(oldVnode); }
         return
       }
 
       var isInitialPatch = false;
+      // 新插入节点的对了，后期为了当这些节点对应的DOM元素挂载到DOM树上之后会触发它们身上的insert钩子函数
       var insertedVnodeQueue = [];
-
+      // 旧vnode不存在
+      // 调用组件的$mount且没有传入参数时出现这种情况，说明仅仅是创建组件但没挂载
       if (isUndef(oldVnode)) {
         // empty mount (likely as component), create new root element
+        // 标记当前组件的vnode和DOM元素创建好了，存在内存中，没有挂载
         isInitialPatch = true;
+        // 没有传入第三个参数，说明是仅仅创建vnode对应的DOM元素但不挂载
         createElm(vnode, insertedVnodeQueue);
       } else {
+          // 旧vnode存在
+          //判断旧vnode是否是真实的DOM元素，首次渲染时是真实DOM元素
         var isRealElement = isDef(oldVnode.nodeType);
+        // 不是真实DOM元素
         if (!isRealElement && sameVnode(oldVnode, vnode)) {
           // patch existing root node
+          // 执行Diff算法 比较差异 并将差异更新到真实DOM上（即保存在vnode.elm上）
           patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly);
         } else {
           if (isRealElement) {
@@ -6542,14 +6611,18 @@
             }
             // either not server-rendered, or hydration failed.
             // create an empty node and replace it
+            // 这里旧vnode是真实DOM元素（首次渲染时），会将真实DOM元素转换为一个vnode对象
             oldVnode = emptyNodeAt(oldVnode);
           }
 
           // replacing existing element
           var oldElm = oldVnode.elm;
+          // oldVnode的父元素，将来要将差异挂载到父元素上
           var parentElm = nodeOps.parentNode(oldElm);
 
           // create new node
+          // 将vnode转换成真实DOM元素，挂载到父元素上
+          // 将新的DOM元素加入到insertedVnodeQueue队里中
           createElm(
             vnode,
             insertedVnodeQueue,
@@ -6592,13 +6665,14 @@
 
           // destroy old node
           if (isDef(parentElm)) {
+            //移除旧vnode并且出触发remove、destory钩子函数
             removeVnodes([oldVnode], 0, 0);
           } else if (isDef(oldVnode.tag)) {
             invokeDestroyHook(oldVnode);
           }
         }
       }
-
+      // 触发insert钩子函数，但不会触发内存中创建的vnode（尚未挂载的vnode），通过第三个参数识别
       invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch);
       return vnode.elm
     }
@@ -11703,6 +11777,7 @@
 
   function createFunction (code, errors) {
     try {
+      // 将字符串形式的js代码转换成一个函数
       return new Function(code)
     } catch (err) {
       errors.push({ err: err, code: code });
@@ -11741,6 +11816,7 @@
       }
 
       // check cache
+      // 如果有缓存则直接返回
       var key = options.delimiters
         ? String(options.delimiters) + template
         : template;
@@ -11749,6 +11825,7 @@
       }
 
       // compile
+      // 将模板转换成render函数（js字符串形式的代码）
       var compiled = compile(template, options);
 
       // check compilation errors/tips
@@ -11782,6 +11859,7 @@
       // turn code into functions
       var res = {};
       var fnGenErrors = [];
+      // 将字符串形式的js代码转换成js方法
       res.render = createFunction(compiled.render, fnGenErrors);
       res.staticRenderFns = compiled.staticRenderFns.map(function (code) {
         return createFunction(code, fnGenErrors)
@@ -11805,7 +11883,7 @@
           );
         }
       }
-
+      // 缓存并返回 { render,staticRenderFns }
       return (cache[key] = res)
     }
   }
@@ -11865,11 +11943,13 @@
         }
 
         finalOptions.warn = warn;
-
+        // 具体实现将模板编译成render函数的地方 调用baseCompile
+        // compiled = { render,staticRenderFns }
         var compiled = baseCompile(template.trim(), finalOptions);
         {
           detectErrors(compiled.ast, warn);
         }
+        // 记录转换过程中遇到的错误和问题
         compiled.errors = errors;
         compiled.tips = tips;
         return compiled
@@ -11935,8 +12015,9 @@
     el,
     hydrating
   ) {
+    // B01. 获取并处理el对象
     el = el && query(el);
-
+    // B02. 不能把vue挂载到body或html标签上
     /* istanbul ignore if */
     if (el === document.body || el === document.documentElement) {
        warn(
@@ -11947,6 +12028,7 @@
 
     var options = this.$options;
     // resolve template/el and convert to render function
+    // B03. 没有传入render函数时，将template转换为render函数
     if (!options.render) {
       var template = options.template;
       if (template) {
@@ -11970,6 +12052,7 @@
           return this
         }
       } else if (el) {
+        // 没有传入render，也没有传入template，只传入了el属性
         template = getOuterHTML(el);
       }
       if (template) {
@@ -11997,6 +12080,7 @@
         }
       }
     }
+    // B04. 调用mount方法，挂载DOM
     return mount.call(this, el, hydrating)
   };
 
@@ -12005,8 +12089,9 @@
    * of SVG elements in IE as well.
    */
   function getOuterHTML (el) {
+    // 将el元素的父元素作为容器进行渲染
     if (el.outerHTML) {
-      return el.outerHTML
+      return el.outerHTML 
     } else {
       var container = document.createElement('div');
       container.appendChild(el.cloneNode(true));

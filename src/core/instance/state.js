@@ -149,7 +149,8 @@ function initData (vm: Component) {
     }
   }
   // observe data
-  observe(data, true /* asRootData */)
+  // 响应式的入口
+  observe(data, true /* asRootData */) 
 }
 
 export function getData (data: Function, vm: Component): any {

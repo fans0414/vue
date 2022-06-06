@@ -17,7 +17,8 @@ import {
   mergeOptions,
   defineReactive
 } from '../util/index'
-
+// 初始化Vue静态方法
+//#region 
 export function initGlobalAPI (Vue: GlobalAPI) {
   // config
   const configDef = {}
@@ -45,7 +46,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   Vue.set = set
   Vue.delete = del
   Vue.nextTick = nextTick
-
+  // 将数据转换为响应式
   // 2.6 explicit observable API
   Vue.observable = <T>(obj: T): T => {
     observe(obj)
@@ -72,3 +73,4 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // 注册 Vue.directive() Vue.component() Vue.filter()
   initAssetRegisters(Vue)
 }
+//#endregion

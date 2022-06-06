@@ -57,11 +57,13 @@ export function createCompilerCreator (baseCompile: Function): Function {
       }
 
       finalOptions.warn = warn
-
+      // 具体实现将模板编译成render函数的地方 调用baseCompile
+      // compiled = { render,staticRenderFns }
       const compiled = baseCompile(template.trim(), finalOptions)
       if (process.env.NODE_ENV !== 'production') {
         detectErrors(compiled.ast, warn)
       }
+      // 记录转换过程中遇到的错误和问题
       compiled.errors = errors
       compiled.tips = tips
       return compiled

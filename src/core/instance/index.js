@@ -4,14 +4,14 @@ import { renderMixin } from './render'
 import { eventsMixin } from './events'
 import { lifecycleMixin } from './lifecycle'
 import { warn } from '../util/index'
-
+// 定义Vue构造函数
 function Vue (options) {
   if (process.env.NODE_ENV !== 'production' &&
     !(this instanceof Vue)
   ) {
     warn('Vue is a constructor and should be called with the `new` keyword')
   }
-  // 调用_init()方法
+  // 调用_init()方法 注册实例成员及方法
   this._init(options)
 }
 // 注册vm的_init方法，初始化vm

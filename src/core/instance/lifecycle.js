@@ -56,20 +56,21 @@ export function initLifecycle (vm: Component) {
 }
 
 export function lifecycleMixin (Vue: Class<Component>) {
-  // _update方法会把VNode渲染成真实DOM
+  // _update方法会对比差异并把差异渲染成真实DOM
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
-    const prevVnode = vm._vnode
+    const prevVnode = vm._vnode //旧vnode
     const restoreActiveInstance = setActiveInstance(vm)
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
+    // 最终都会把创建好的DOM元素保存到vm.$el上
     if (!prevVnode) {
-      // initial render
+      // initial render 首次渲染情况，没有旧vnode而是容器DOM元素（#app）
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
-      // updates
+      // updates 对比新旧节点差异，并把差异渲染到真实DOM
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
     restoreActiveInstance()
@@ -139,7 +140,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
-export function mountComponent (
+export function mountComponent (  
   vm: Component,
   el: ?Element,
   hydrating?: boolean

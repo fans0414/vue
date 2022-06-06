@@ -17,11 +17,13 @@ export function isReserved (str: string): boolean {
 
 /**
  * Define a property.
+ * def(value, '__ob__', this)
+ * vm.$options.data.__ob__ = observer
  */
 export function def (obj: Object, key: string, val: any, enumerable?: boolean) {
   Object.defineProperty(obj, key, {
     value: val,
-    enumerable: !!enumerable,
+    enumerable: !!enumerable,//不可枚举
     writable: true,
     configurable: true
   })

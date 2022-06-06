@@ -6,7 +6,7 @@
 import { def } from '../util/index'
 
 const arrayProto = Array.prototype
-export const arrayMethods = Object.create(arrayProto)
+export const  arrayMethods = Object.create(arrayProto)
 
 const methodsToPatch = [
   'push',
@@ -20,6 +20,7 @@ const methodsToPatch = [
 
 /**
  * Intercept mutating methods and emit events
+ * 修改数组的原生方法，用于支持响应式
  */
 methodsToPatch.forEach(function (method) {
   // cache original method
